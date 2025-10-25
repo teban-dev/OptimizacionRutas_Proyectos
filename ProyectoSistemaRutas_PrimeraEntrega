@@ -1,0 +1,176 @@
+
+# ---------------------------------------------------------
+# SISTEMA DE OPTIMIZACIÓN DE RUTAS EN ENVÍOS
+# Estructuras de Datos - Proyecto con Listas Enlazadas
+#
+# Integrantes del grupo:
+# - Juan David Ortiz Ochoa (2242038)
+# - Juan Esteban Gomez Ayala (2243465)
+# - Ángel Sierra (2242007)
+# Profesora: Nury Farelo
+# Fecha: 12/09/2025
+# ---------------------------------------------------------
+
+class Ruta:
+    def __init__(self, destino, distancia):
+        self.destino = destino
+        self.distancia = distancia
+        self.siguiente_ruta = None
+
+
+class NodoUbicacion:
+    def __init__(self, nombre):
+        self.nombre = nombre
+        self.rutas = None
+        self.siguiente_nodo = None
+
+
+class RedDeRutas:
+    def __init__(self):
+        self.primer_nodo = None
+
+    # 1. Verificar si la lista está vacía
+    def esta_vacia(self):
+        return self.primer_nodo is None
+
+    # 2. Contar elementos de la lista (cantidad de ubicaciones)
+    def contar_ubicaciones(self):
+        contador = 0
+        actual = self.primer_nodo
+        while actual:
+            contador += 1
+            actual = actual.siguiente_nodo
+        return contador
+
+    # 3. Imprimir la lista de ubicaciones con sus rutas
+    def mostrar_red(self):
+        if self.esta_vacia():
+            print("La red de rutas está vacía.")
+            return
+
+        actual = self.primer_nodo
+        while actual:
+            print(f"Ubicaciones conectadas a {actual.nombre}:")
+            ruta_actual = actual.rutas
+            while ruta_actual:
+                print(f"  - {ruta_actual.destino} (Distancia: {ruta_actual.distancia} Km)")
+                ruta_actual = ruta_actual.siguiente_ruta
+            print()
+            actual = actual.siguiente_nodo
+
+    # 4. Agregar ubicación al INICIO de la lista
+    def agregar_ubicacion(self, nombre):
+        nuevo_nodo = NodoUbicacion(nombre)
+        nuevo_nodo.siguiente_nodo = self.primer_nodo
+        self.primer_nodo = nuevo_nodo
+
+    def buscar_ubicacion(self, nombre):
+        actual = self.primer_nodo
+        while actual:
+            if actual.nombre == nombre:
+                return actual
+            actual = actual.siguiente_nodo
+        return None
+
+    def agregar_ruta(self, origen, destino, distancia):
+        nodo_origen = self.buscar_ubicacion(origen)
+        nodo_destino = self.buscar_ubicacion(destino)
+        if not nodo_origen or not nodo_destino:
+            print("Una o ambas ubicaciones no existen en la red.")
+            return
+
+        nueva_ruta = Ruta(destino, distancia)
+
+        if not nodo_origen.rutas:
+            nodo_origen.rutas = nueva_ruta
+        else:
+            actual = nodo_origen.rutas
+            while actual.siguiente_ruta:
+                actual = actual.siguiente_ruta
+            actual.siguiente_ruta = nueva_ruta
+
+    # 5. Buscar una ubicación (ordenando por nombre primero)
+    def ordenar_ubicaciones(self):
+        if self.esta_vacia() or self.primer_nodo.siguiente_nodo is None:
+            return
+        cambiado = True
+        while cambiado:
+            cambiado = False
+            actual = self.primer_nodo
+            while actual.siguiente_nodo:
+                if actual.nombre > actual.siguiente_nodo.nombre:
+                    actual.nombre, actual.siguiente_nodo.nombre = actual.siguiente_nodo.nombre, actual.nombre
+                    actual.rutas, actual.siguiente_nodo.rutas = actual.siguiente_nodo.rutas, actual.rutas
+                    cambiado = True
+                actual = actual.siguiente_nodo
+
+    def buscar_ubicacion_ordenada(self, nombre):
+        self.ordenar_ubicaciones()
+        actual = self.primer_nodo
+        while actual:
+            if actual.nombre == nombre:
+                return actual
+            actual = actual.siguiente_nodo
+        return None
+
+
+# ---------------- MENÚ PRINCIPAL ----------------
+def menu():
+    red = RedDeRutas()
+
+    while True:
+        print("--- Sistema de Rutas de Envío ---")
+        print("1. Agregar ubicación (al inicio)")
+        print("2. Agregar ruta entre ubicaciones")
+        print("3. Mostrar red de rutas")
+        print("4. Verificar si la red está vacía")
+        print("5. Contar ubicaciones")
+        print("6. Buscar ubicación (ordenada)")
+        print("7. Salir")
+
+        opcion = input("Seleccione una opción: ")
+
+        if opcion == "1":
+            nombre = input("Ingrese el nombre de la ubicación: ")
+            red.agregar_ubicacion(nombre)
+
+        elif opcion == "2":
+            origen = input("Ingrese el nombre de la ubicación de origen: ")
+            destino = input("Ingrese el nombre de la ubicación de destino: ")
+            try:
+                distancia = float(input("Ingrese la distancia entre las ubicaciones (Km): "))
+            except ValueError:
+                print("La distancia debe ser un número válido.")
+                continue
+            red.agregar_ruta(origen, destino, distancia)
+
+        elif opcion == "3":
+            red.mostrar_red()
+
+        elif opcion == "4":
+            if red.esta_vacia():
+                print("La red está vacía.")
+            else:
+                print("La red NO está vacía.")
+
+        elif opcion == "5":
+            print("Cantidad de ubicaciones en la red:", red.contar_ubicaciones())
+
+        elif opcion == "6":
+            nombre = input("Ingrese el nombre de la ubicación a buscar: ")
+            ubicacion = red.buscar_ubicacion_ordenada(nombre)
+            if ubicacion:
+                print(f"Ubicación encontrada: {ubicacion.nombre}")
+            else:
+                print("Ubicación no encontrada en la red.")
+
+        elif opcion == "7":
+            print("¡Hasta luego!")
+            break
+
+        else:
+            print("Opción no válida. Intente de nuevo.")
+
+
+if __name__ == "__main__":
+    menu()
